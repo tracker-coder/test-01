@@ -9,13 +9,16 @@ import {
 } from "recharts";
 import { formatPKR } from "@/lib/format";
 import { format, eachMonthOfInterval } from "date-fns";
+import {
+  CHART_COLORS, chartAxis, chartGrid, chartLegend, chartMargin, chartTooltipStyle, compactNumber,
+} from "@/lib/chart-theme";
 
 export const Route = createFileRoute("/_app/analytics")({
   head: () => ({ meta: [{ title: "Analytics — GUL Paper" }] }),
   component: AnalyticsPage,
 });
 
-const COLORS = ["hsl(var(--primary))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
+const COLORS = CHART_COLORS;
 
 function AnalyticsPage() {
   const dr = useDateRange("year");
@@ -58,43 +61,49 @@ function AnalyticsPage() {
 
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader title="Analytics" description="Trends and insights across your operations." actions={<DateRangeSelect {...dr} />} />
 
-      <div className="rounded-xl border bg-card p-4">
-        <h3 className="font-display font-semibold">Monthly trend</h3>
-        <div className="h-72 mt-2">
+      <div className="panel p-5">
+        <div className="mb-4">
+          <h3 className="font-display text-base font-semibold">Monthly trend</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">Sales, purchases and expenses by month</p>
+        </div>
+        <div className="h-72">
           <ResponsiveContainer>
-            <BarChart data={monthly}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" fontSize={11} tickLine={false} axisLine={false} />
-              <YAxis fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => new Intl.NumberFormat("en-PK", { notation: "compact" }).format(v)} />
-              <Tooltip formatter={(v: number) => formatPKR(v)} />
-              <Legend />
-              <Bar dataKey="sales" fill={COLORS[0]} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="purchases" fill={COLORS[1]} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="expenses" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+            <BarChart data={monthly} margin={chartMargin}>
+              <CartesianGrid {...chartGrid} />
+              <XAxis dataKey="month" {...chartAxis} />
+              <YAxis {...chartAxis} tickFormatter={compactNumber} width={52} />
+              <Tooltip formatter={(v: number) => formatPKR(v)} contentStyle={chartTooltipStyle} />
+              <Legend {...chartLegend} />
+              <Bar dataKey="sales" name="Sales" fill={COLORS[0]} radius={[4, 4, 0, 0]} maxBarSize={32} />
+              <Bar dataKey="purchases" name="Purchases" fill={COLORS[1]} radius={[4, 4, 0, 0]} maxBarSize={32} />
+              <Bar dataKey="expenses" name="Expenses" fill={COLORS[2]} radius={[4, 4, 0, 0]} maxBarSize={32} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      <div className="rounded-xl border bg-card p-4 mt-4">
-        <h3 className="font-display font-semibold">Monthly profit</h3>
-        <div className="h-56 mt-2">
+      <div className="panel p-5">
+        <div className="mb-4">
+          <h3 className="font-display text-base font-semibold">Monthly profit</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">Sales minus purchases and expenses</p>
+        </div>
+        <div className="h-56">
           <ResponsiveContainer>
-            <LineChart data={monthly}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" fontSize={11} tickLine={false} axisLine={false} />
-              <YAxis fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => new Intl.NumberFormat("en-PK", { notation: "compact" }).format(v)} />
-              <Tooltip formatter={(v: number) => formatPKR(v)} />
-              <Line type="monotone" dataKey="profit" stroke={COLORS[0]} strokeWidth={2} dot={{ r: 3 }} />
+            <LineChart data={monthly} margin={chartMargin}>
+              <CartesianGrid {...chartGrid} />
+              <XAxis dataKey="month" {...chartAxis} />
+              <YAxis {...chartAxis} tickFormatter={compactNumber} width={52} />
+              <Tooltip formatter={(v: number) => formatPKR(v)} contentStyle={chartTooltipStyle} />
+              <Line type="monotone" dataKey="profit" name="Profit" stroke={COLORS[0]} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      <div className="grid gap-4 mt-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <BreakdownCard title="Top products (sales)" data={topProducts} />
         <BreakdownCard title="Top customers" data={topCustomers} />
         <BreakdownCard title="Top suppliers" data={topSuppliers} />
@@ -107,34 +116,54 @@ function AnalyticsPage() {
 function BreakdownCard({ title, data }: { title: string; data: { name: string; value: number }[] }) {
   const total = data.reduce((s, d) => s + d.value, 0);
   return (
-    <div className="rounded-xl border bg-card p-4">
-      <h3 className="font-display font-semibold">{title}</h3>
+    <div className="panel p-5">
+      <h3 className="font-display text-base font-semibold">{title}</h3>
       {data.length === 0 ? (
-        <p className="text-sm text-muted-foreground mt-4">No data.</p>
+        <p className="mt-6 rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+          No data for this period.
+        </p>
       ) : (
         <>
-          <div className="h-40 mt-2">
+          <div className="mt-3 h-40">
             <ResponsiveContainer>
               <PieChart>
                 <Pie data={data} dataKey="value" nameKey="name" innerRadius={35} outerRadius={60} paddingAngle={2}>
                   {data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
-                <Tooltip formatter={(v: number) => formatPKR(v)} />
+                <Tooltip formatter={(v: number) => formatPKR(v)} contentStyle={chartTooltipStyle} />
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <ul className="mt-2 space-y-1 text-sm">
-            {data.map((d, i) => (
-              <li key={d.name} className="flex items-center justify-between">
-                <span className="flex items-center gap-2 truncate">
-                  <span className="h-2 w-2 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
-                  <span className="truncate">{d.name}</span>
-                </span>
-                <span className="tabular-nums text-muted-foreground">
-                  {formatPKR(d.value)} <span className="text-[11px]">({total ? Math.round((d.value / total) * 100) : 0}%)</span>
-                </span>
-              </li>
-            ))}
+          <ul className="mt-3 space-y-2.5 text-sm">
+            {data.map((d, i) => {
+              const pct = total ? (d.value / total) * 100 : 0;
+              return (
+                <li key={d.name}>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ background: COLORS[i % COLORS.length] }}
+                      />
+                      <span className="truncate">{d.name}</span>
+                    </span>
+                    <span className="shrink-0 tabular-nums">
+                      {formatPKR(d.value)}
+                      <span className="ml-1 text-[11px] text-muted-foreground">
+                        ({Math.round(pct)}%)
+                      </span>
+                    </span>
+                  </div>
+                  {/* Share bar — makes the ranking readable without reading the numbers. */}
+                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${pct}%`, background: COLORS[i % COLORS.length] }}
+                    />
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </>
       )}

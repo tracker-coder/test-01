@@ -7,6 +7,9 @@ import { DateRangeSelect, useDateRange } from "@/components/date-range-select";
 import { formatPKR, formatKg } from "@/lib/format";
 import { displayDate } from "@/lib/date-range";
 import {
+  chartAxis, chartGrid, chartLegend, chartMargin, chartTooltipStyle, compactNumber,
+} from "@/lib/chart-theme";
+import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
   LineChart, Line, Legend,
 } from "recharts";
@@ -85,89 +88,133 @@ function Dashboard() {
     return acc;
   }, []);
 
+  const sectionLabel =
+    "text-[11px] font-semibold uppercase tracking-wider text-muted-foreground";
+
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Dashboard"
         description={`Overview from ${displayDate(dr.range.from)} to ${displayDate(dr.range.to)}`}
         actions={<DateRangeSelect {...dr} />}
       />
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-9">
-        <KPICard label="Sales" value={totalSales} tone="success" icon={<Receipt className="h-4 w-4" />} />
-        <KPICard label="Sale weight" value={formatKg(totalSaleGrams)} currency={false} icon={<Scale className="h-4 w-4" />} />
-        <KPICard label="Purchases" value={totalPurchases} icon={<ShoppingCart className="h-4 w-4" />} />
-        <KPICard label="Purchase weight" value={formatKg(totalPurchaseGrams)} currency={false} icon={<Scale className="h-4 w-4" />} />
-        <KPICard label="Expenses" value={totalExpenses} tone="destructive" icon={<Coins className="h-4 w-4" />} />
-        <KPICard label="Net (period)" value={netProfit} tone={netProfit >= 0 ? "success" : "destructive"} icon={<Wallet className="h-4 w-4" />} />
-        <KPICard label="Total in Banks" value={bankTotal} icon={<Landmark className="h-4 w-4" />} />
-        <KPICard label="Total Receivable" value={totalReceivable} tone="success" hint="From customers" icon={<ArrowDownCircle className="h-4 w-4" />} />
-        <KPICard label="Total Payable" value={totalPayable} tone="destructive" hint="To suppliers" icon={<ArrowUpCircle className="h-4 w-4" />} />
-      </div>
+      {/* Headline figures for the selected period — the four numbers you check first. */}
+      <section className="space-y-3">
+        <h2 className={sectionLabel}>This period</h2>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <KPICard label="Sales" value={totalSales} tone="success" icon={<Receipt className="h-4 w-4" />} />
+          <KPICard label="Purchases" value={totalPurchases} tone="info" icon={<ShoppingCart className="h-4 w-4" />} />
+          <KPICard label="Expenses" value={totalExpenses} tone="warning" icon={<Coins className="h-4 w-4" />} />
+          <KPICard
+            label="Net"
+            value={netProfit}
+            tone={netProfit >= 0 ? "success" : "destructive"}
+            hint="Sales − purchases − expenses"
+            icon={<Wallet className="h-4 w-4" />}
+          />
+        </div>
+      </section>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2 rounded-xl border bg-card p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <h3 className="font-display text-base font-semibold">Daily activity</h3>
-              <p className="text-xs text-muted-foreground">Sales, purchases and expenses per day</p>
-            </div>
+      {/* Standing balances and tonnage — reference figures, one tier down. */}
+      <section className="space-y-3">
+        <h2 className={sectionLabel}>Volume &amp; position</h2>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+          <KPICard label="Sale weight" value={formatKg(totalSaleGrams)} currency={false} icon={<Scale className="h-4 w-4" />} />
+          <KPICard label="Purchase weight" value={formatKg(totalPurchaseGrams)} currency={false} icon={<Scale className="h-4 w-4" />} />
+          <KPICard label="Total in banks" value={bankTotal} icon={<Landmark className="h-4 w-4" />} />
+          <KPICard label="Receivable" value={totalReceivable} tone="success" hint="From customers" icon={<ArrowDownCircle className="h-4 w-4" />} />
+          <KPICard label="Payable" value={totalPayable} tone="destructive" hint="To suppliers" icon={<ArrowUpCircle className="h-4 w-4" />} />
+        </div>
+      </section>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="panel p-5 lg:col-span-2">
+          <div className="mb-4">
+            <h3 className="font-display text-base font-semibold">Daily activity</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Sales, purchases and expenses per day
+            </p>
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={daily}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => new Intl.NumberFormat("en-PK", { notation: "compact" }).format(v)} />
-                <Tooltip formatter={(v: number) => formatPKR(v)} cursor={{ fill: "hsl(var(--muted))" }} />
-                <Legend />
-                <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="purchases" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="expenses" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+              <BarChart data={daily} margin={chartMargin}>
+                <CartesianGrid {...chartGrid} />
+                <XAxis dataKey="date" {...chartAxis} />
+                <YAxis {...chartAxis} tickFormatter={compactNumber} width={52} />
+                <Tooltip
+                  formatter={(v: number) => formatPKR(v)}
+                  cursor={{ fill: "var(--muted)", opacity: 0.5 }}
+                  contentStyle={chartTooltipStyle}
+                />
+                <Legend {...chartLegend} />
+                <Bar dataKey="sales" name="Sales" fill="var(--chart-1)" radius={[4, 4, 0, 0]} maxBarSize={28} />
+                <Bar dataKey="purchases" name="Purchases" fill="var(--chart-2)" radius={[4, 4, 0, 0]} maxBarSize={28} />
+                <Bar dataKey="expenses" name="Expenses" fill="var(--chart-3)" radius={[4, 4, 0, 0]} maxBarSize={28} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="rounded-xl border bg-card p-4">
+        <div className="panel p-5">
           <h3 className="font-display text-base font-semibold">Balances</h3>
-          <div className="mt-3 space-y-2">
-            <div className="flex items-center justify-between rounded-md bg-muted p-3">
-              <div>
-                <div className="text-xs text-muted-foreground">Cash on hand</div>
-                <div className="font-display text-lg font-semibold tabular-nums">{formatPKR(summary?.cashCurrent ?? 0)}</div>
-              </div>
-              <Wallet className="h-5 w-5 text-muted-foreground" />
-            </div>
-            {(summary?.banks ?? []).map((b) => (
-              <div key={b.bank_name + b.account_title} className="flex items-center justify-between rounded-md border p-3">
-                <div>
-                  <div className="text-sm font-medium">{b.bank_name}</div>
-                  <div className="text-xs text-muted-foreground">{b.account_title}</div>
+          <p className="mt-0.5 text-xs text-muted-foreground">Cash and bank accounts right now</p>
+
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/[0.06] p-3">
+              <div className="min-w-0">
+                <div className="text-xs font-medium text-muted-foreground">Cash on hand</div>
+                <div className="mt-0.5 font-display text-lg font-semibold tabular-nums text-primary">
+                  {formatPKR(summary?.cashCurrent ?? 0)}
                 </div>
-                <div className="font-display text-sm font-semibold tabular-nums">{formatPKR(b.current_balance)}</div>
+              </div>
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/12">
+                <Wallet className="h-4 w-4 text-primary" />
+              </div>
+            </div>
+
+            {(summary?.banks ?? []).map((b) => (
+              <div
+                key={b.bank_name + b.account_title}
+                className="flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-accent/40"
+              >
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium">{b.bank_name}</div>
+                  <div className="truncate text-xs text-muted-foreground">{b.account_title}</div>
+                </div>
+                <div className="shrink-0 font-display text-sm font-semibold tabular-nums">
+                  {formatPKR(b.current_balance)}
+                </div>
               </div>
             ))}
+
             {(summary?.banks ?? []).length === 0 && (
-              <div className="text-xs text-muted-foreground p-3">No bank accounts yet — add one from the Banks page.</div>
+              <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
+                No bank accounts yet — add one from the Banks page.
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      <div className="mt-4 rounded-xl border bg-card p-4">
-        <h3 className="font-display text-base font-semibold">Cumulative trend</h3>
-        <div className="h-64 mt-2">
+      <div className="panel p-5">
+        <div className="mb-4">
+          <h3 className="font-display text-base font-semibold">Cumulative trend</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Running totals across the selected period
+          </p>
+        </div>
+        <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={cumulative}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-              <XAxis dataKey="date" fontSize={11} tickLine={false} axisLine={false} />
-              <YAxis fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => new Intl.NumberFormat("en-PK", { notation: "compact" }).format(v)} />
-              <Tooltip formatter={(v: number) => formatPKR(v)} />
-              <Legend />
-              <Line type="monotone" dataKey="sales" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 2 }} isAnimationActive={false} />
-              <Line type="monotone" dataKey="purchases" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={{ r: 2 }} isAnimationActive={false} />
-              <Line type="monotone" dataKey="expenses" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 2 }} isAnimationActive={false} />
+            <LineChart data={cumulative} margin={chartMargin}>
+              <CartesianGrid {...chartGrid} />
+              <XAxis dataKey="date" {...chartAxis} />
+              <YAxis {...chartAxis} tickFormatter={compactNumber} width={52} />
+              <Tooltip formatter={(v: number) => formatPKR(v)} contentStyle={chartTooltipStyle} />
+              <Legend {...chartLegend} />
+              <Line type="monotone" dataKey="sales" name="Sales" stroke="var(--chart-1)" strokeWidth={2} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="purchases" name="Purchases" stroke="var(--chart-2)" strokeWidth={2} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="expenses" name="Expenses" stroke="var(--chart-3)" strokeWidth={2} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>

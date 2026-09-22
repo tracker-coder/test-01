@@ -5,8 +5,14 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * GUL Paper Management System — soft neutral + emerald.
- * All colors use oklch. Semantic tokens only — never hardcode in components.
+ * GUL Paper Management System — design tokens.
+ *
+ * Cool-neutral surfaces + a deep emerald brand. All colors are oklch so that
+ * light/dark pairs stay perceptually matched. Components must only ever use the
+ * semantic tokens below (bg-card, text-muted-foreground, …) and never hardcode
+ * a color, so the whole app can be re-themed from this one file.
+ *
+ * To change the brand color, edit --primary (and its dark counterpart) only.
  */
 
 @theme inline {
@@ -22,6 +28,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -40,7 +47,10 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
@@ -50,6 +60,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -64,103 +75,176 @@
 :root {
   --radius: 0.625rem;
 
-  /* Soft neutral + emerald */
-  --background: oklch(0.985 0.005 120);     /* #F8FAF7 */
-  --surface: oklch(1 0 0);                   /* #FFFFFF */
-  --foreground: oklch(0.19 0.03 260);        /* #0F172A slate-900 */
+  /* ---- Surfaces: content sits on a soft gray, cards are white and lift off it ---- */
+  --background: oklch(0.974 0.0035 250);
+  --surface: oklch(1 0 0);
+  --elevated: oklch(1 0 0);
+  --foreground: oklch(0.21 0.022 255);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.19 0.03 260);
+  --card-foreground: oklch(0.21 0.022 255);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.19 0.03 260);
+  --popover-foreground: oklch(0.21 0.022 255);
 
-  --primary: oklch(0.62 0.14 158);           /* emerald-600 #059669 */
-  --primary-foreground: oklch(0.99 0.01 150);
+  /* ---- Brand: deep emerald, dark enough to carry white text (AA on 4.5:1) ---- */
+  --primary: oklch(0.56 0.132 162);
+  --primary-foreground: oklch(0.99 0.004 160);
 
-  --secondary: oklch(0.965 0.008 155);
-  --secondary-foreground: oklch(0.22 0.04 260);
+  --secondary: oklch(0.962 0.004 250);
+  --secondary-foreground: oklch(0.28 0.02 255);
 
-  --muted: oklch(0.965 0.008 155);
-  --muted-foreground: oklch(0.51 0.02 255);  /* slate-500ish */
+  --muted: oklch(0.966 0.004 250);
+  --muted-foreground: oklch(0.523 0.016 253);
 
-  --accent: oklch(0.95 0.03 155);            /* soft emerald tint */
-  --accent-foreground: oklch(0.35 0.08 158);
+  --accent: oklch(0.955 0.022 162);
+  --accent-foreground: oklch(0.42 0.1 162);
 
-  --destructive: oklch(0.6 0.22 27);
-  --destructive-foreground: oklch(0.99 0.01 20);
+  --destructive: oklch(0.573 0.198 27);
+  --destructive-foreground: oklch(0.99 0.008 20);
 
-  --success: oklch(0.62 0.14 158);
-  --success-foreground: oklch(0.99 0.01 150);
-  --warning: oklch(0.78 0.14 78);
-  --warning-foreground: oklch(0.25 0.06 78);
+  --success: oklch(0.58 0.13 160);
+  --success-foreground: oklch(0.99 0.004 160);
+  --warning: oklch(0.72 0.142 72);
+  --warning-foreground: oklch(0.32 0.07 62);
+  --info: oklch(0.58 0.14 245);
+  --info-foreground: oklch(0.99 0.004 245);
 
-  --border: oklch(0.92 0.01 155);            /* #E5E7EB-ish */
-  --input: oklch(0.92 0.01 155);
-  --ring: oklch(0.62 0.14 158);
+  --border: oklch(0.912 0.005 253);
+  --border-strong: oklch(0.85 0.008 253);
+  --input: oklch(0.906 0.006 253);
+  --ring: oklch(0.56 0.132 162);
 
-  --chart-1: oklch(0.62 0.14 158);
-  --chart-2: oklch(0.55 0.13 220);
-  --chart-3: oklch(0.72 0.12 78);
-  --chart-4: oklch(0.65 0.18 30);
-  --chart-5: oklch(0.55 0.12 300);
+  /* ---- Charts: distinguishable at a glance, including for red/green color blindness ---- */
+  --chart-1: oklch(0.6 0.132 162); /* emerald  — money in */
+  --chart-2: oklch(0.575 0.142 248); /* blue     — money out / purchases */
+  --chart-3: oklch(0.72 0.142 72); /* amber    — expenses */
+  --chart-4: oklch(0.6 0.178 18); /* rose */
+  --chart-5: oklch(0.55 0.158 295); /* violet */
+  --chart-6: oklch(0.66 0.105 210); /* cyan */
 
-  --sidebar: oklch(0.99 0.003 155);
-  --sidebar-foreground: oklch(0.22 0.03 260);
-  --sidebar-primary: oklch(0.62 0.14 158);
-  --sidebar-primary-foreground: oklch(0.99 0.01 150);
-  --sidebar-accent: oklch(0.95 0.02 155);
-  --sidebar-accent-foreground: oklch(0.35 0.08 158);
-  --sidebar-border: oklch(0.92 0.01 155);
-  --sidebar-ring: oklch(0.62 0.14 158);
+  /* ---- Sidebar: near-white so it separates from the gray content area ---- */
+  --sidebar: oklch(0.995 0.0015 250);
+  --sidebar-foreground: oklch(0.3 0.018 255);
+  --sidebar-primary: oklch(0.56 0.132 162);
+  --sidebar-primary-foreground: oklch(0.99 0.004 160);
+  --sidebar-accent: oklch(0.958 0.004 250);
+  --sidebar-accent-foreground: oklch(0.24 0.022 255);
+  --sidebar-border: oklch(0.918 0.005 253);
+  --sidebar-ring: oklch(0.56 0.132 162);
+
+  /* ---- Elevation ---- */
+  --shadow-xs: 0 1px 2px 0 oklch(0.21 0.022 255 / 0.05);
+  --shadow-sm: 0 1px 2px 0 oklch(0.21 0.022 255 / 0.06), 0 1px 3px 0 oklch(0.21 0.022 255 / 0.05);
+  --shadow-md: 0 2px 4px -1px oklch(0.21 0.022 255 / 0.06), 0 4px 12px -2px oklch(0.21 0.022 255 / 0.08);
+  --shadow-lg: 0 8px 24px -4px oklch(0.21 0.022 255 / 0.12), 0 2px 6px -2px oklch(0.21 0.022 255 / 0.06);
 }
 
 .dark {
-  --background: oklch(0.15 0.02 260);
-  --surface: oklch(0.2 0.03 260);
-  --foreground: oklch(0.98 0.005 150);
-  --card: oklch(0.2 0.03 260);
-  --card-foreground: oklch(0.98 0.005 150);
-  --popover: oklch(0.2 0.03 260);
-  --popover-foreground: oklch(0.98 0.005 150);
-  --primary: oklch(0.7 0.15 158);
-  --primary-foreground: oklch(0.15 0.03 158);
-  --secondary: oklch(0.28 0.03 260);
-  --secondary-foreground: oklch(0.98 0.005 150);
-  --muted: oklch(0.28 0.03 260);
-  --muted-foreground: oklch(0.7 0.02 255);
-  --accent: oklch(0.3 0.05 158);
-  --accent-foreground: oklch(0.98 0.005 150);
-  --destructive: oklch(0.7 0.19 22);
-  --destructive-foreground: oklch(0.98 0.01 20);
-  --success: oklch(0.7 0.15 158);
-  --success-foreground: oklch(0.15 0.03 158);
-  --warning: oklch(0.78 0.14 78);
-  --warning-foreground: oklch(0.15 0.03 78);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.7 0.15 158);
-  --sidebar: oklch(0.2 0.03 260);
-  --sidebar-foreground: oklch(0.98 0.005 150);
-  --sidebar-primary: oklch(0.7 0.15 158);
-  --sidebar-primary-foreground: oklch(0.15 0.03 158);
-  --sidebar-accent: oklch(0.28 0.03 260);
-  --sidebar-accent-foreground: oklch(0.98 0.005 150);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.7 0.15 158);
+  --background: oklch(0.168 0.012 258);
+  --surface: oklch(0.212 0.014 258);
+  --elevated: oklch(0.238 0.015 258);
+  --foreground: oklch(0.962 0.003 250);
+
+  --card: oklch(0.212 0.014 258);
+  --card-foreground: oklch(0.962 0.003 250);
+  --popover: oklch(0.238 0.015 258);
+  --popover-foreground: oklch(0.962 0.003 250);
+
+  --primary: oklch(0.7 0.142 162);
+  --primary-foreground: oklch(0.17 0.035 162);
+
+  --secondary: oklch(0.272 0.016 258);
+  --secondary-foreground: oklch(0.962 0.003 250);
+
+  --muted: oklch(0.272 0.016 258);
+  --muted-foreground: oklch(0.7 0.016 252);
+
+  --accent: oklch(0.31 0.045 162);
+  --accent-foreground: oklch(0.93 0.04 162);
+
+  --destructive: oklch(0.68 0.185 24);
+  --destructive-foreground: oklch(0.99 0.008 20);
+
+  --success: oklch(0.7 0.142 162);
+  --success-foreground: oklch(0.17 0.035 162);
+  --warning: oklch(0.79 0.135 74);
+  --warning-foreground: oklch(0.2 0.05 62);
+  --info: oklch(0.7 0.13 248);
+  --info-foreground: oklch(0.17 0.04 248);
+
+  --border: oklch(1 0 0 / 9%);
+  --border-strong: oklch(1 0 0 / 16%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.7 0.142 162);
+
+  --chart-1: oklch(0.72 0.135 162);
+  --chart-2: oklch(0.7 0.13 248);
+  --chart-3: oklch(0.79 0.135 74);
+  --chart-4: oklch(0.7 0.16 18);
+  --chart-5: oklch(0.68 0.15 295);
+  --chart-6: oklch(0.75 0.1 210);
+
+  --sidebar: oklch(0.192 0.013 258);
+  --sidebar-foreground: oklch(0.9 0.006 250);
+  --sidebar-primary: oklch(0.7 0.142 162);
+  --sidebar-primary-foreground: oklch(0.17 0.035 162);
+  --sidebar-accent: oklch(0.265 0.016 258);
+  --sidebar-accent-foreground: oklch(0.97 0.003 250);
+  --sidebar-border: oklch(1 0 0 / 9%);
+  --sidebar-ring: oklch(0.7 0.142 162);
+
+  --shadow-xs: 0 1px 2px 0 oklch(0 0 0 / 0.3);
+  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.35), 0 1px 3px 0 oklch(0 0 0 / 0.3);
+  --shadow-md: 0 2px 4px -1px oklch(0 0 0 / 0.35), 0 4px 12px -2px oklch(0 0 0 / 0.4);
+  --shadow-lg: 0 8px 24px -4px oklch(0 0 0 / 0.5), 0 2px 6px -2px oklch(0 0 0 / 0.35);
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  html, body {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  h1, h2, h3, h4, .font-display, .tabular-nums {
+
+  /* Stop the layout jumping sideways when a page is short enough to lose its scrollbar. */
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
     font-family: var(--font-display);
+    letter-spacing: -0.011em;
   }
-  .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+  /* Figures line up in columns — essential for money and weight tables. */
+  .num,
+  .tabular-nums,
+  table td,
+  table th {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  ::selection {
+    background-color: color-mix(in oklch, var(--primary) 22%, transparent);
+  }
+
+  /* One consistent, visible keyboard focus ring everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
 
   /* Remove number input spinners (up/down arrows) everywhere */
   input[type="number"]::-webkit-outer-spin-button,
@@ -168,6 +252,63 @@
     -webkit-appearance: none;
     margin: 0;
   }
-  input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  /* Slim, theme-aware scrollbars instead of the chunky OS default. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--border-strong);
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
+@layer components {
+  /* Standard panel: use instead of repeating `rounded-xl border bg-card shadow-sm`. */
+  .panel {
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    background-color: var(--card);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Keeps column headers visible while scrolling long ledgers. */
+  .table-sticky thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--muted);
+    box-shadow: inset 0 -1px 0 var(--border);
+  }
+
+  /* Alternating rows make wide financial tables far easier to track across. */
+  .table-zebra tbody tr:nth-child(even) {
+    background-color: color-mix(in oklch, var(--muted) 45%, transparent);
+  }
+}
