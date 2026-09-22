@@ -9,30 +9,34 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as AppSalesRouteImport } from './routes/_app/sales'
-import { Route as AppReportsRouteImport } from './routes/_app/reports'
-import { Route as AppPurchasesRouteImport } from './routes/_app/purchases'
-import { Route as AppPartiesRouteImport } from './routes/_app/parties'
-import { Route as AppMasterRouteImport } from './routes/_app/master'
-import { Route as AppInventoryRouteImport } from './routes/_app/inventory'
-import { Route as AppExpensesRouteImport } from './routes/_app/expenses'
-import { Route as AppCashFlowRouteImport } from './routes/_app/cash-flow'
-import { Route as AppBanksRouteImport } from './routes/_app/banks'
-import { Route as AppAuditLogRouteImport } from './routes/_app/audit-log'
-import { Route as AppAnalyticsRouteImport } from './routes/_app/analytics'
 import { Route as AppAdminRouteImport } from './routes/_app/admin'
+import { Route as AppAnalyticsRouteImport } from './routes/_app/analytics'
+import { Route as AppAuditLogRouteImport } from './routes/_app/audit-log'
+import { Route as AppBanksRouteImport } from './routes/_app/banks'
+import { Route as AppCashFlowRouteImport } from './routes/_app/cash-flow'
+import { Route as AppExpensesRouteImport } from './routes/_app/expenses'
+import { Route as AppInventoryRouteImport } from './routes/_app/inventory'
+import { Route as AppMasterRouteImport } from './routes/_app/master'
+import { Route as AppPartiesRouteImport } from './routes/_app/parties'
+import { Route as AppPurchasesRouteImport } from './routes/_app/purchases'
+import { Route as AppReportsRouteImport } from './routes/_app/reports'
+import { Route as AppSalesRouteImport } from './routes/_app/sales'
+import { Route as AppPurchasesNewRouteImport } from './routes/_app/purchases_.new'
+import { Route as AppSalesNewRouteImport } from './routes/_app/sales_.new'
 import { Route as ApiPublicBootstrapRouteImport } from './routes/api/public/bootstrap'
+import { Route as AppPurchasesIdEditRouteImport } from './routes/_app/purchases_.$id.edit'
+import { Route as AppSalesIdEditRouteImport } from './routes/_app/sales_.$id.edit'
 
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppRoute = AppRouteImport.update({
-  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -40,54 +44,9 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppSalesRoute = AppSalesRouteImport.update({
-  id: '/sales',
-  path: '/sales',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppReportsRoute = AppReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPurchasesRoute = AppPurchasesRouteImport.update({
-  id: '/purchases',
-  path: '/purchases',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPartiesRoute = AppPartiesRouteImport.update({
-  id: '/parties',
-  path: '/parties',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMasterRoute = AppMasterRouteImport.update({
-  id: '/master',
-  path: '/master',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppInventoryRoute = AppInventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppExpensesRoute = AppExpensesRouteImport.update({
-  id: '/expenses',
-  path: '/expenses',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCashFlowRoute = AppCashFlowRouteImport.update({
-  id: '/cash-flow',
-  path: '/cash-flow',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppBanksRoute = AppBanksRouteImport.update({
-  id: '/banks',
-  path: '/banks',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAuditLogRoute = AppAuditLogRouteImport.update({
-  id: '/audit-log',
-  path: '/audit-log',
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
@@ -95,15 +54,80 @@ const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAdminRoute = AppAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const AppAuditLogRoute = AppAuditLogRouteImport.update({
+  id: '/audit-log',
+  path: '/audit-log',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBanksRoute = AppBanksRouteImport.update({
+  id: '/banks',
+  path: '/banks',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCashFlowRoute = AppCashFlowRouteImport.update({
+  id: '/cash-flow',
+  path: '/cash-flow',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppExpensesRoute = AppExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInventoryRoute = AppInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMasterRoute = AppMasterRouteImport.update({
+  id: '/master',
+  path: '/master',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPartiesRoute = AppPartiesRouteImport.update({
+  id: '/parties',
+  path: '/parties',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPurchasesRoute = AppPurchasesRouteImport.update({
+  id: '/purchases',
+  path: '/purchases',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSalesRoute = AppSalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPurchasesNewRoute = AppPurchasesNewRouteImport.update({
+  id: '/purchases_/new',
+  path: '/purchases/new',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSalesNewRoute = AppSalesNewRouteImport.update({
+  id: '/sales_/new',
+  path: '/sales/new',
   getParentRoute: () => AppRoute,
 } as any)
 const ApiPublicBootstrapRoute = ApiPublicBootstrapRouteImport.update({
   id: '/api/public/bootstrap',
   path: '/api/public/bootstrap',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppPurchasesIdEditRoute = AppPurchasesIdEditRouteImport.update({
+  id: '/purchases_/$id/edit',
+  path: '/purchases/$id/edit',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSalesIdEditRoute = AppSalesIdEditRouteImport.update({
+  id: '/sales_/$id/edit',
+  path: '/sales/$id/edit',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -121,7 +145,11 @@ export interface FileRoutesByFullPath {
   '/purchases': typeof AppPurchasesRoute
   '/reports': typeof AppReportsRoute
   '/sales': typeof AppSalesRoute
+  '/purchases/new': typeof AppPurchasesNewRoute
+  '/sales/new': typeof AppSalesNewRoute
   '/api/public/bootstrap': typeof ApiPublicBootstrapRoute
+  '/purchases/$id/edit': typeof AppPurchasesIdEditRoute
+  '/sales/$id/edit': typeof AppSalesIdEditRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -138,7 +166,11 @@ export interface FileRoutesByTo {
   '/reports': typeof AppReportsRoute
   '/sales': typeof AppSalesRoute
   '/': typeof AppIndexRoute
+  '/purchases/new': typeof AppPurchasesNewRoute
+  '/sales/new': typeof AppSalesNewRoute
   '/api/public/bootstrap': typeof ApiPublicBootstrapRoute
+  '/purchases/$id/edit': typeof AppPurchasesIdEditRoute
+  '/sales/$id/edit': typeof AppSalesIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -157,7 +189,11 @@ export interface FileRoutesById {
   '/_app/reports': typeof AppReportsRoute
   '/_app/sales': typeof AppSalesRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/purchases_/new': typeof AppPurchasesNewRoute
+  '/_app/sales_/new': typeof AppSalesNewRoute
   '/api/public/bootstrap': typeof ApiPublicBootstrapRoute
+  '/_app/purchases_/$id/edit': typeof AppPurchasesIdEditRoute
+  '/_app/sales_/$id/edit': typeof AppSalesIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -176,7 +212,11 @@ export interface FileRouteTypes {
     | '/purchases'
     | '/reports'
     | '/sales'
+    | '/purchases/new'
+    | '/sales/new'
     | '/api/public/bootstrap'
+    | '/purchases/$id/edit'
+    | '/sales/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -193,7 +233,11 @@ export interface FileRouteTypes {
     | '/reports'
     | '/sales'
     | '/'
+    | '/purchases/new'
+    | '/sales/new'
     | '/api/public/bootstrap'
+    | '/purchases/$id/edit'
+    | '/sales/$id/edit'
   id:
     | '__root__'
     | '/_app'
@@ -211,7 +255,11 @@ export interface FileRouteTypes {
     | '/_app/reports'
     | '/_app/sales'
     | '/_app/'
+    | '/_app/purchases_/new'
+    | '/_app/sales_/new'
     | '/api/public/bootstrap'
+    | '/_app/purchases_/$id/edit'
+    | '/_app/sales_/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -222,18 +270,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_app': {
       id: '/_app'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/': {
@@ -243,74 +291,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/sales': {
-      id: '/_app/sales'
-      path: '/sales'
-      fullPath: '/sales'
-      preLoaderRoute: typeof AppSalesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/reports': {
-      id: '/_app/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof AppReportsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/purchases': {
-      id: '/_app/purchases'
-      path: '/purchases'
-      fullPath: '/purchases'
-      preLoaderRoute: typeof AppPurchasesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/parties': {
-      id: '/_app/parties'
-      path: '/parties'
-      fullPath: '/parties'
-      preLoaderRoute: typeof AppPartiesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/master': {
-      id: '/_app/master'
-      path: '/master'
-      fullPath: '/master'
-      preLoaderRoute: typeof AppMasterRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/inventory': {
-      id: '/_app/inventory'
-      path: '/inventory'
-      fullPath: '/inventory'
-      preLoaderRoute: typeof AppInventoryRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/expenses': {
-      id: '/_app/expenses'
-      path: '/expenses'
-      fullPath: '/expenses'
-      preLoaderRoute: typeof AppExpensesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/cash-flow': {
-      id: '/_app/cash-flow'
-      path: '/cash-flow'
-      fullPath: '/cash-flow'
-      preLoaderRoute: typeof AppCashFlowRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/banks': {
-      id: '/_app/banks'
-      path: '/banks'
-      fullPath: '/banks'
-      preLoaderRoute: typeof AppBanksRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/audit-log': {
-      id: '/_app/audit-log'
-      path: '/audit-log'
-      fullPath: '/audit-log'
-      preLoaderRoute: typeof AppAuditLogRouteImport
+    '/_app/admin': {
+      id: '/_app/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/analytics': {
@@ -320,11 +305,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAnalyticsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/admin': {
-      id: '/_app/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AppAdminRouteImport
+    '/_app/audit-log': {
+      id: '/_app/audit-log'
+      path: '/audit-log'
+      fullPath: '/audit-log'
+      preLoaderRoute: typeof AppAuditLogRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/banks': {
+      id: '/_app/banks'
+      path: '/banks'
+      fullPath: '/banks'
+      preLoaderRoute: typeof AppBanksRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/cash-flow': {
+      id: '/_app/cash-flow'
+      path: '/cash-flow'
+      fullPath: '/cash-flow'
+      preLoaderRoute: typeof AppCashFlowRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/expenses': {
+      id: '/_app/expenses'
+      path: '/expenses'
+      fullPath: '/expenses'
+      preLoaderRoute: typeof AppExpensesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/inventory': {
+      id: '/_app/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof AppInventoryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/master': {
+      id: '/_app/master'
+      path: '/master'
+      fullPath: '/master'
+      preLoaderRoute: typeof AppMasterRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/parties': {
+      id: '/_app/parties'
+      path: '/parties'
+      fullPath: '/parties'
+      preLoaderRoute: typeof AppPartiesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/purchases': {
+      id: '/_app/purchases'
+      path: '/purchases'
+      fullPath: '/purchases'
+      preLoaderRoute: typeof AppPurchasesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports': {
+      id: '/_app/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/sales': {
+      id: '/_app/sales'
+      path: '/sales'
+      fullPath: '/sales'
+      preLoaderRoute: typeof AppSalesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/purchases_/new': {
+      id: '/_app/purchases_/new'
+      path: '/purchases/new'
+      fullPath: '/purchases/new'
+      preLoaderRoute: typeof AppPurchasesNewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/sales_/new': {
+      id: '/_app/sales_/new'
+      path: '/sales/new'
+      fullPath: '/sales/new'
+      preLoaderRoute: typeof AppSalesNewRouteImport
       parentRoute: typeof AppRoute
     }
     '/api/public/bootstrap': {
@@ -333,6 +395,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/bootstrap'
       preLoaderRoute: typeof ApiPublicBootstrapRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/purchases_/$id/edit': {
+      id: '/_app/purchases_/$id/edit'
+      path: '/purchases/$id/edit'
+      fullPath: '/purchases/$id/edit'
+      preLoaderRoute: typeof AppPurchasesIdEditRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/sales_/$id/edit': {
+      id: '/_app/sales_/$id/edit'
+      path: '/sales/$id/edit'
+      fullPath: '/sales/$id/edit'
+      preLoaderRoute: typeof AppSalesIdEditRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
@@ -351,6 +427,10 @@ interface AppRouteChildren {
   AppReportsRoute: typeof AppReportsRoute
   AppSalesRoute: typeof AppSalesRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppPurchasesNewRoute: typeof AppPurchasesNewRoute
+  AppSalesNewRoute: typeof AppSalesNewRoute
+  AppPurchasesIdEditRoute: typeof AppPurchasesIdEditRoute
+  AppSalesIdEditRoute: typeof AppSalesIdEditRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -367,6 +447,10 @@ const AppRouteChildren: AppRouteChildren = {
   AppReportsRoute: AppReportsRoute,
   AppSalesRoute: AppSalesRoute,
   AppIndexRoute: AppIndexRoute,
+  AppPurchasesNewRoute: AppPurchasesNewRoute,
+  AppSalesNewRoute: AppSalesNewRoute,
+  AppPurchasesIdEditRoute: AppPurchasesIdEditRoute,
+  AppSalesIdEditRoute: AppSalesIdEditRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +20,6 @@ import { FileText, Scale, Wallet, TrendingUp } from "lucide-react";
 import { displayDate } from "@/lib/date-range";
 import { useSuppliers, useProducts, useLastRates, useBanks } from "@/hooks/use-master-data";
 import { useIsAdmin } from "@/hooks/use-role";
-import { InvoiceItemsEditor, newEmptyItem, validateItems, type LineItem } from "@/components/invoice-items-editor";
 import { Plus, Trash2, Search, Eye, Pencil } from "lucide-react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { shareOnWhatsApp } from "@/lib/whatsapp";
@@ -55,7 +54,6 @@ function PurchasesPage() {
   const dr = useDateRange("month");
   const [search, setSearch] = useState("");
   const [viewId, setViewId] = useState<string | null>(null);
-  const [editRow, setEditRow] = useState<any | null>(null);
   const qc = useQueryClient();
   const isAdmin = useIsAdmin();
 
@@ -114,14 +112,9 @@ function PurchasesPage() {
         actions={
           <>
             <DateRangeSelect {...dr} />
-            <FormDialog
-              trigger={<Button size="sm" className="gap-1"><Plus className="h-4 w-4" /> New purchase</Button>}
-              title="New purchase"
-              description="Add one or more products. Total is auto-calculated from quantity × rate."
-              size="lg"
-            >
-              {(close) => <PurchaseForm onDone={close} />}
-            </FormDialog>
+            <Button size="sm" asChild className="gap-1">
+              <Link to="/purchases/new"><Plus className="h-4 w-4" /> New purchase</Link>
+            </Button>
           </>
         }
       />
@@ -188,8 +181,10 @@ function PurchasesPage() {
                       </Button>
                       {isAdmin && (
                         <>
-                          <Button variant="ghost" size="icon" onClick={() => setEditRow(r)} title="Edit">
-                            <Pencil className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" asChild title="Edit">
+                            <Link to="/purchases/$id/edit" params={{ id: r.id }}>
+                              <Pencil className="h-4 w-4" />
+                            </Link>
                           </Button>
                           <Button variant="ghost" size="icon" onClick={() => confirm("Delete this purchase?") && del.mutate(r.id)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
@@ -252,141 +247,6 @@ function PurchasesPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!editRow} onOpenChange={(o) => !o && setEditRow(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit purchase</DialogTitle>
-          </DialogHeader>
-          {editRow && <PurchaseForm initial={editRow} onDone={() => setEditRow(null)} />}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
-
-function itemsFromRows(rows: any[] | undefined): LineItem[] {
-  if (!rows || rows.length === 0) return [newEmptyItem()];
-  return rows.map((r) => {
-    const { kg, g } = gramsToKgGram(r.quantity_g);
-    return { id: crypto.randomUUID(), product_id: r.product_id, kg: String(kg), g: String(g), rate: String(r.rate), rateTouched: true };
-  });
-}
-
-function PurchaseForm({ onDone, initial }: { onDone: () => void; initial?: any }) {
-  const qc = useQueryClient();
-  const suppliers = useSuppliers();
-  const products = useProducts();
-  const banks = useBanks();
-  const lastRates = useLastRates("supplier");
-  const [purchase_date, setDate] = useState(initial?.purchase_date ?? format(new Date(), "yyyy-MM-dd"));
-  const [supplier_id, setSupplier] = useState(initial?.supplier_id ?? "");
-  const [paid_by, setPaidBy] = useState<"cash" | "bank" | "credit">(initial?.paid_by ?? "cash");
-  const [bank_id, setBank] = useState(initial?.bank_id ?? "");
-  const [notes, setNotes] = useState(initial?.notes ?? "");
-  const [items, setItems] = useState<LineItem[]>(itemsFromRows(initial?.purchase_items));
-
-  const save = useMutation({
-    mutationFn: async () => {
-      if (!supplier_id) throw new Error("Select a supplier");
-      if (paid_by === "bank" && !bank_id) throw new Error("Select a bank");
-      const v = validateItems(items);
-      if (!v.ok || !v.prepared) throw new Error(v.message);
-      const payload: any = {
-        purchase_date, supplier_id, paid_by,
-        bank_id: paid_by === "bank" ? bank_id : null,
-        notes: notes || null,
-      };
-      let parentId: string;
-      if (initial?.id) {
-        parentId = initial.id;
-        const { error: eu } = await (supabase as any).from("purchases").update(payload).eq("id", parentId);
-        if (eu) throw eu;
-        const { error: ed } = await (supabase as any).from("purchase_items").delete().eq("purchase_id", parentId);
-        if (ed) throw ed;
-      } else {
-        const { data: u } = await supabase.auth.getUser();
-        const { data: parent, error } = await (supabase as any)
-          .from("purchases")
-          .insert({ ...payload, created_by: u.user?.id, total_amount: 0 })
-          .select("id").single();
-        if (error) throw error;
-        parentId = parent.id;
-      }
-      const rows = v.prepared.map((it) => ({ ...it, purchase_id: parentId }));
-      const { error: e2 } = await (supabase as any).from("purchase_items").insert(rows);
-      if (e2) throw e2;
-    },
-    onSuccess: () => {
-      toast.success(initial?.id ? "Purchase updated" : "Purchase saved");
-      qc.invalidateQueries({ queryKey: ["purchases"] });
-      qc.invalidateQueries({ queryKey: ["dashboard-summary"] });
-      qc.invalidateQueries({ queryKey: ["cash-flow"] });
-      qc.invalidateQueries({ queryKey: ["bank_balances"] });
-      qc.invalidateQueries({ queryKey: ["supplier-statement"] });
-      qc.invalidateQueries({ queryKey: ["product_party_rates"] });
-      onDone();
-    },
-    onError: (e: any) => toast.error(e.message || "Save failed"),
-  });
-
-  return (
-    <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-3">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label>Date</Label>
-          <Input type="date" value={purchase_date} onChange={(e) => setDate(e.target.value)} required />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Supplier *</Label>
-          <Select value={supplier_id} onValueChange={setSupplier}>
-            <SelectTrigger><SelectValue placeholder="Select supplier" /></SelectTrigger>
-            <SelectContent>
-              {(suppliers.data ?? []).map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Paid by *</Label>
-          <Select value={paid_by} onValueChange={(v) => setPaidBy(v as "cash" | "bank" | "credit")}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="cash">Cash</SelectItem>
-              <SelectItem value="bank">Bank</SelectItem>
-              <SelectItem value="credit">Credit (pay supplier later)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {paid_by === "bank" && (
-          <div className="space-y-1.5">
-            <Label>Bank (paid from) *</Label>
-            <Select value={bank_id} onValueChange={setBank}>
-              <SelectTrigger><SelectValue placeholder="Select bank" /></SelectTrigger>
-              <SelectContent>
-                {(banks.data ?? []).map((b) => <SelectItem key={b.id} value={b.id}>{b.bank_name} — {b.account_title}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-      </div>
-
-      <InvoiceItemsEditor
-        items={items}
-        onChange={setItems}
-        products={products.data ?? []}
-        lastRates={lastRates.data ?? {}}
-        partyId={supplier_id}
-      />
-
-      <div className="space-y-1.5">
-        <Label>Notes</Label>
-        <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
-      </div>
-
-      <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="ghost" onClick={onDone}>Cancel</Button>
-        <Button type="submit" disabled={save.isPending}>{save.isPending ? "Saving…" : (initial?.id ? "Update purchase" : "Save purchase")}</Button>
-      </div>
-    </form>
-  );
-}
-

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +18,6 @@ import { formatPKR, formatMoney, formatRate, formatKgG, formatKg, gramsToKgGram,
 import { displayDate } from "@/lib/date-range";
 import { useCustomers, useProducts, useBanks, useLastRates } from "@/hooks/use-master-data";
 import { useIsAdmin } from "@/hooks/use-role";
-import { InvoiceItemsEditor, newEmptyItem, validateItems, type LineItem } from "@/components/invoice-items-editor";
 import { Plus, Trash2, Search, Eye, Pencil, Receipt, Scale, Wallet, TrendingUp } from "lucide-react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { shareOnWhatsApp } from "@/lib/whatsapp";
@@ -65,7 +64,6 @@ function SalesPage() {
   const dr = useDateRange("month");
   const [search, setSearch] = useState("");
   const [viewId, setViewId] = useState<string | null>(null);
-  const [editRow, setEditRow] = useState<any | null>(null);
   const qc = useQueryClient();
   const isAdmin = useIsAdmin();
 
@@ -152,14 +150,9 @@ function SalesPage() {
             >
               {(close) => <ServiceSaleForm onDone={close} />}
             </FormDialog>
-            <FormDialog
-              trigger={<Button size="sm" className="gap-1"><Plus className="h-4 w-4" /> New sale</Button>}
-              title="New sale"
-              description="Add one or more products. Total is auto-calculated from quantity × rate."
-              size="lg"
-            >
-              {(close) => <SaleForm onDone={close} />}
-            </FormDialog>
+            <Button size="sm" asChild className="gap-1">
+              <Link to="/sales/new"><Plus className="h-4 w-4" /> New sale</Link>
+            </Button>
           </>
         }
       />
@@ -240,8 +233,10 @@ function SalesPage() {
                       )}
                       {isAdmin && !isService && (
                         <>
-                          <Button variant="ghost" size="icon" onClick={() => setEditRow(r)} title="Edit">
-                            <Pencil className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" asChild title="Edit">
+                            <Link to="/sales/$id/edit" params={{ id: r.id }}>
+                              <Pencil className="h-4 w-4" />
+                            </Link>
                           </Button>
                         </>
                       )}
@@ -323,185 +318,7 @@ function SalesPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!editRow} onOpenChange={(o) => !o && setEditRow(null)}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader><DialogTitle>Edit sale</DialogTitle></DialogHeader>
-          {editRow && <SaleForm initial={editRow} onDone={() => setEditRow(null)} />}
-        </DialogContent>
-      </Dialog>
     </div>
-  );
-}
-
-function itemsFromRows(rows: any[] | undefined): LineItem[] {
-  if (!rows || rows.length === 0) return [newEmptyItem()];
-  return rows.map((r) => {
-    const { kg, g } = gramsToKgGram(r.quantity_g);
-    const cuttingKg = Math.floor(Number(r.cutting_g ?? 0) / 1000);
-    return { id: crypto.randomUUID(), product_id: r.product_id, kg: String(kg), g: String(g), cutting_kg: cuttingKg ? String(cuttingKg) : "", rate: String(r.rate), rateTouched: true };
-  });
-}
-
-function SaleForm({ onDone, initial }: { onDone: () => void; initial?: any }) {
-  const qc = useQueryClient();
-  const customers = useCustomers();
-  const products = useProducts();
-  const banks = useBanks();
-  const lastRates = useLastRates("customer");
-  const [sale_date, setDate] = useState(initial?.sale_date ?? format(new Date(), "yyyy-MM-dd"));
-  const [customer_id, setCustomer] = useState(initial?.customer_id ?? "");
-  const [paid_by, setPaidBy] = useState<"cash" | "bank" | "credit">(initial?.paid_by ?? "bank");
-  const [bank_id, setBank] = useState(initial?.bank_id ?? "");
-  const [reference_no, setRef] = useState(initial?.reference_no ?? "");
-  const [notes, setNotes] = useState(initial?.notes ?? "");
-  const [items, setItems] = useState<LineItem[]>(itemsFromRows(initial?.sale_items));
-  const [shipping, setShipping] = useState(initial?.shipping_charges ? String(initial.shipping_charges) : "");
-  const [loading, setLoading] = useState(initial?.loading_charges ? String(initial.loading_charges) : "");
-
-  const itemsTotal = items.reduce((s, it) => {
-    const grams = kgGramToGrams(it.kg, it.g);
-    const cut = kgGramToGrams(it.cutting_kg ?? "0", "0");
-    return s + totalFromRatePerKg(it.rate, Math.max(grams - cut, 0));
-  }, 0);
-  const shippingNum = Math.max(Number(shipping) || 0, 0);
-  const loadingNum = Math.max(Number(loading) || 0, 0);
-  const netTotal = itemsTotal - shippingNum - loadingNum;
-
-  const save = useMutation({
-    mutationFn: async () => {
-      if (paid_by === "bank" && !bank_id) throw new Error("Select a bank");
-      if (!customer_id) throw new Error("Select a customer");
-      const v = validateItems(items, { withCutting: true });
-      if (!v.ok || !v.prepared) throw new Error(v.message);
-      let parentId: string;
-      if (initial?.id) {
-        parentId = initial.id;
-        const { error: eu } = await (supabase as any)
-          .from("sales")
-          .update({
-            sale_date, customer_id, paid_by, bank_id: paid_by === "bank" ? bank_id : null,
-            reference_no: reference_no || null, notes: notes || null,
-            shipping_charges: shippingNum, loading_charges: loadingNum,
-          })
-          .eq("id", parentId);
-        if (eu) throw eu;
-        const { error: ed } = await (supabase as any).from("sale_items").delete().eq("sale_id", parentId);
-        if (ed) throw ed;
-      } else {
-        const { data: u } = await supabase.auth.getUser();
-        const { data: parent, error } = await (supabase as any)
-          .from("sales")
-          .insert({
-            sale_date, customer_id, paid_by, bank_id: paid_by === "bank" ? bank_id : null,
-            reference_no: reference_no || null,
-            notes: notes || null,
-            shipping_charges: shippingNum, loading_charges: loadingNum,
-            created_by: u.user?.id, total_amount: 0,
-          })
-          .select("id").single();
-        if (error) throw error;
-        parentId = parent.id;
-      }
-      const rows = v.prepared.map((it) => ({ ...it, sale_id: parentId }));
-      const { error: e2 } = await (supabase as any).from("sale_items").insert(rows);
-      if (e2) throw e2;
-    },
-    onSuccess: () => {
-      toast.success(initial?.id ? "Sale updated" : "Sale saved");
-      qc.invalidateQueries({ queryKey: ["sales"] });
-      qc.invalidateQueries({ queryKey: ["dashboard-summary"] });
-      qc.invalidateQueries({ queryKey: ["banks"] });
-      qc.invalidateQueries({ queryKey: ["product_party_rates"] });
-      onDone();
-    },
-    onError: (e: any) => toast.error(e.message || "Save failed"),
-  });
-
-  return (
-    <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-3">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label>Date</Label>
-          <Input type="date" required value={sale_date} onChange={(e) => setDate(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Paid by *</Label>
-          <Select value={paid_by} onValueChange={(v) => setPaidBy(v as "cash" | "bank" | "credit")}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="cash">Cash</SelectItem>
-              <SelectItem value="bank">Bank</SelectItem>
-              <SelectItem value="credit">Credit (customer will pay later)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {paid_by === "bank" && (
-          <div className="space-y-1.5">
-            <Label>Bank (deposit to) *</Label>
-            <Select value={bank_id} onValueChange={setBank}>
-              <SelectTrigger><SelectValue placeholder="Select bank" /></SelectTrigger>
-              <SelectContent>
-                {(banks.data ?? []).map((b) => <SelectItem key={b.id} value={b.id}>{b.bank_name} — {b.account_title}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-        <div className="space-y-1.5">
-          <Label>Customer *</Label>
-          <Select value={customer_id} onValueChange={setCustomer}>
-            <SelectTrigger><SelectValue placeholder="Select customer" /></SelectTrigger>
-            <SelectContent>
-              {(customers.data ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Reference no.</Label>
-          <Input value={reference_no} onChange={(e) => setRef(e.target.value)} placeholder="Invoice / receipt no." />
-        </div>
-      </div>
-
-      <InvoiceItemsEditor
-        items={items}
-        onChange={setItems}
-        products={products.data ?? []}
-        lastRates={lastRates.data ?? {}}
-        partyId={customer_id}
-        enableCutting
-      />
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label>Shipping charges</Label>
-          <Input type="number" min="0" step="0.01" inputMode="decimal" value={shipping}
-            onChange={(e) => setShipping(e.target.value)} placeholder="0" className="tabular-nums" />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Loading/unloading charges</Label>
-          <Input type="number" min="0" step="0.01" inputMode="decimal" value={loading}
-            onChange={(e) => setLoading(e.target.value)} placeholder="0" className="tabular-nums" />
-        </div>
-      </div>
-
-      <div className="rounded-lg border bg-muted/30 p-3 text-sm space-y-1">
-        <div className="flex justify-between"><span className="text-muted-foreground">Items total</span><span className="tabular-nums">{formatPKR(itemsTotal)}</span></div>
-        <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span className="tabular-nums">−{formatPKR(shippingNum)}</span></div>
-        <div className="flex justify-between"><span className="text-muted-foreground">Loading/unloading</span><span className="tabular-nums">−{formatPKR(loadingNum)}</span></div>
-        <div className="flex justify-between border-t pt-1 font-semibold"><span>Net total</span><span className="tabular-nums">{formatPKR(netTotal)}</span></div>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label>Notes</Label>
-        <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
-      </div>
-
-      <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-2 border-t bg-background px-6 py-3">
-
-        <Button type="button" variant="ghost" onClick={onDone}>Cancel</Button>
-        <Button type="submit" disabled={save.isPending}>{save.isPending ? "Saving…" : (initial?.id ? "Update sale" : "Save sale")}</Button>
-      </div>
-    </form>
   );
 }
 
